@@ -1,0 +1,105 @@
+
+services:
+##FRONTEND
+  openWebUI:
+    hostname: openwebui
+    image: ghcr.io/open-webui/open-webui:main
+    depends_on:
+    ### Make sure this won't run if the backend and DB aren't working
+        - chromadb
+        - ollama
+    volumes:
+      - ./data/open-webui/data:/app/backend/data # Backend Data
+      - ./data/material:/app/backend/data/docs # Documents to feed
+      - ./data/open-webui/static:/app/build/static # Static files
+    environment:
+    ### ENV Variables can be found here: https://docs.openwebui.com/getting-started/advanced-topics/env-configuration
+      ENV: dev ##Enable some endpoints for development, remove when in prod for less vebosity
+      DATA_DIR: /app/backend/data ## Absolute path inside the container
+      STATIC_DIR: /app/build/static
+      OLLAMA_BASE_URLS: http://ollama:11434 # this connects to the docker hosted Ollama
+      CHROMA_HTTP_PORT: 8000
+      CHROMA_HTTP_HOST: chromadb
+      CHROMA_TENANT: default_tenant
+      VECTOR_DB: chroma
+      ENABLE_OPENAI_API: "False"
+      WEBUI_NAME: Evil Corp AI # Can be whatever
+      CORS_ALLOW_ORIGIN: "*" # This is the current Default, will need to change before going live
+      RAG_EMBEDDING_ENGINE: ollama
+      RAG_EMBEDDING_MODEL: nomic-embed-text-v1.5
+      RAG_EMBEDDING_MODEL_TRUST_REMOTE_CODE: "True"
+    ports:
+      - target: 8080
+        published: 8080
+        mode: bridge
+    deploy:
+      resources:
+        reservations:
+          cpus: "0.5"
+          memory: "1G"
+      replicas: 1
+    networks:
+      - internal-net
+
+## VECTOR DATABASE
+  chromadb:
+    hostname: chromadb
+    image: chromadb/chroma:0.5.5 ##known issues with newer versions and compatibility  
+    volumes:
+      - ./data/chromadb:/chroma/chroma
+    environment:
+      - REBUILD_HNSWLIB=TRUE
+      - IS_PERSISTENT=TRUE
+      - ALLOW_RESET=TRUE
+      - PERSIST_DIRECTORY=/chroma/chroma
+      - ANONYMIZED_TELEMETRY=${ANONYMIZED_TELEMETRY:-FALSE}
+    ports:
+      - target: 8000
+        published: 8000
+        mode: bridge
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.5'
+          memory: 1Gib
+      replicas: 1
+    networks:
+      - internal-net
+
+## BACKEND/ MODEL
+  ollama:
+    image: ollama/ollama:latest
+    hostname: ollama
+    ports:
+      - target: 11434
+        published: 11434
+        mode: overlay
+    deploy:
+      resources:
+        reservations:
+          cpus: '1.0'
+###          memory: 4Gib
+### Uncomment if you have dedicated GPU / if you have Nvidia Container Toolkit installed
+###          generic_resources:
+###            - discrete_resource_spec:
+###                kind: "NVIDIA-GPU"
+###                value: 1
+      replicas: 1
+    volumes:
+      - ./data/ollama:/root/.ollama
+    networks:
+      - internal-net
+
+volumes:
+  open-webui-data:
+    external: true
+  chromadb-data:
+    external: true
+  ollama-data:
+    external: true
+
+networks:
+  internal-net:
+    name: internal-net
+    external: true
+    driver: overlay
