@@ -1,0 +1,21 @@
+echo "=========================================================="
+echo " "
+echo "Creating local directories for Docker volumes"
+echo " "
+mkdir -p data/open-webui data/chromadb data/ollama
+echo " "
+echo "Creating Docker Network . . ."
+echo " "
+docker network create internal-net || true
+echo " "
+echo "Deploying Docker Services . . ."
+echo " "
+docker compose up -d
+echo " "
+echo "=========================================================="
+echo " "
+echo "Services Deployed..."
+echo " "
+echo "When finished, run 'docker compose down' to stop services"
+echo " "
+echo "=========================================================="
