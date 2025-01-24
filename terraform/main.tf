@@ -80,8 +80,8 @@ resource "aws_security_group" "cluster_sg" {
 # Create 5 GPU instances
 ##################################################
 resource "aws_instance" "gpu_instance" {
-  count                         = 1 #can be as many as you want
-  ami                           = "ami-0e1bed4f06a3b463d"
+  count                         = 1 # can be as many as you want
+  ami                           = "ami-0e1bed4f06a3b463d" # Ubuntu, since everyone loves it.
   instance_type                 = "g4dn.xlarge"
   subnet_id                     = element(aws_subnet.cluster_subnet.*.id, 1)
   vpc_security_group_ids        = [aws_security_group.cluster_sg.id]
