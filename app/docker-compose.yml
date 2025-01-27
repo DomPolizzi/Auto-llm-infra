@@ -44,7 +44,7 @@ services:
 ## VECTOR DATABASE
   chromadb:
     hostname: chromadb
-    image: chromadb/chroma:0.5.5 ##known issues with newer versions and compatibility  
+    image: chromadb/chroma:0.6.2 ##known issues with other versions, locking for sanity  
     volumes:
       - ./data/chromadb:/chroma/chroma
     environment:
