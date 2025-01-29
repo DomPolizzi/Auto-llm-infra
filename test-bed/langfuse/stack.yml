@@ -11,7 +11,7 @@ services:
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
       SALT: "mysalt"
-      ENCRYPTION_KEY: "2d7babb8d5e2bb8fef98463c02aa7fce118fc856897f49730fa401c461af0a26"
+      ENCRYPTION_KEY: ""
       TELEMETRY_ENABLED: ${TELEMETRY_ENABLED:-true}
       LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: ${LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES:-true}
       CLICKHOUSE_MIGRATION_URL: ${CLICKHOUSE_MIGRATION_URL:-clickhouse://clickhouse:9000}
@@ -52,7 +52,7 @@ services:
       # Reuse the same env from langfuse-worker
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/postgres
       SALT: "mysalt"
-      ENCRYPTION_KEY: "2d7babb8d5e2bb8fef98463c02aa7fce118fc856897f49730fa401c461af0a26"
+      ENCRYPTION_KEY: ""
       TELEMETRY_ENABLED: ${TELEMETRY_ENABLED:-true}
       LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: ${LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES:-true}
       CLICKHOUSE_MIGRATION_URL: ${CLICKHOUSE_MIGRATION_URL:-clickhouse://clickhouse:9000}
