@@ -1,0 +1,31 @@
+---
+services:
+  owu-pipeline:
+    image: ghcr.io/open-webui/pipelines:main
+    hostname: owu-pipeline
+    environment:
+      RESET_PIPELINES_DIR: "true" # Default False, if set to true action will be taken. removing old python code
+###      PIPELINES_REQUIREMENTS_PATH: # installation of requirements.
+###      PIPELINES_URLS: "https://github.com/open-webui/pipelines/blob/main/examples/pipelines/integrations/python_code_pipeline.py" # pipelines download and installation.
+    volumes:
+      - /data/pipelines:/app/pipelines
+    ports:
+      - target: 9099
+        published: 9099
+        protocol: tcp
+        mode: overlay
+    deploy:
+      restart_policy:
+          condition: any
+          delay: 5s
+          max_attempts: 3
+    networks:
+      - internal-net
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+networks:
+  internal-net:
+    name: internal-net
+    external: true
+    driver: overlay
