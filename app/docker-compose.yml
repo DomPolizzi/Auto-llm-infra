@@ -23,7 +23,7 @@ services:
       CHROMA_TENANT: default_tenant
       VECTOR_DB: chroma
       ENABLE_OPENAI_API: "False"
-      WEBUI_NAME: Evil Corp AI # Can be whatever
+      WEBUI_NAME: Magic Man # Can be whatever
       CORS_ALLOW_ORIGIN: "*" # This is the current Default, will need to change before going live
       RAG_EMBEDDING_ENGINE: ollama
       RAG_EMBEDDING_MODEL: nomic-embed-text-v1.5
