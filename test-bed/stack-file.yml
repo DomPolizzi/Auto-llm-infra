@@ -54,7 +54,7 @@ services:
 
   chromadb:
     hostname: chromadb
-    image: chromadb/chroma:0.5.5 ##known issues with newer versions and compatibility  
+    image: chromadb/chroma:0.6.2 ##known issues with newer versions and compatibility  
     volumes:
       - /data/chromadb:/chroma/chroma
     environment:
@@ -81,13 +81,6 @@ services:
         condition: any
         delay: 5s
         max_attempts: 3
-        ### Commenting out in favor of the health check on the main app
-####    healthcheck: 
-####      test: ["CMD-SHELL", "curl localhost:8000/api/v1/heartbeat || exit 1"]
-####      interval: 30s
-####      retries: 2
-####      start_period: 5s
-####      timeout: 10s
     networks:
       - internal-net
 

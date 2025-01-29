@@ -1,102 +1,6 @@
 services:
-##FRONTEND
-  openWebUI:
-    hostname: openwebui
-    container_name: openwebui
-    image: ghcr.io/open-webui/open-webui:main
-    depends_on:
-    ### Make sure this won't run if the backend and DB aren't working
-        - chromadb
-        - ollama
-    volumes:
-      - ./data/open-webui/data:/app/backend/data # Backend Data
-      - ./data/material:/app/backend/data/docs # Documents to feed
-      - ./data/open-webui/static:/app/build/static # Static files
-    environment:
-    ### ENV Variables can be found here: https://docs.openwebui.com/getting-started/advanced-topics/env-configuration
-      ENV: dev ##Enable some endpoints for development, remove when in prod for less vebosity
-      DATA_DIR: /app/backend/data ## Absolute path inside the container
-      STATIC_DIR: /app/build/static
-      OLLAMA_BASE_URLS: http://ollama:11434 # this connects to the docker hosted Ollama
-      CHROMA_HTTP_PORT: 8000
-      CHROMA_HTTP_HOST: chromadb
-      CHROMA_TENANT: default_tenant
-      VECTOR_DB: chroma
-      ENABLE_OPENAI_API: "False"
-      WEBUI_NAME: Magic Man # Can be whatever
-      CORS_ALLOW_ORIGIN: "*" # This is the current Default, will need to change before going live
-      RAG_EMBEDDING_ENGINE: ollama
-      RAG_EMBEDDING_MODEL: nomic-embed-text-v1.5
-      RAG_EMBEDDING_MODEL_TRUST_REMOTE_CODE: "True"
-    ports:
-      - target: 8080
-        published: 8080
-        mode: bridge
-    deploy:
-      resources:
-        reservations:
-          cpus: "0.5"
-          memory: "1G"
-      replicas: 1
-    networks:
-      - internal-net
-
-## VECTOR DATABASE
-  chromadb:
-    container_name: chromadb
-    hostname: chromadb
-    image: chromadb/chroma:0.6.2 ##known issues with other versions, locking for sanity  
-    volumes:
-      - ./data/chromadb:/chroma/chroma
-    environment:
-      - REBUILD_HNSWLIB=TRUE
-      - IS_PERSISTENT=TRUE
-      - ALLOW_RESET=TRUE
-      - PERSIST_DIRECTORY=/chroma/chroma
-      - ANONYMIZED_TELEMETRY=${ANONYMIZED_TELEMETRY:-FALSE}
-    ports:
-      - target: 8000
-        published: 8000
-        mode: bridge
-    deploy:
-      resources:
-        reservations:
-          cpus: '0.5'
-          memory: 1Gib
-      replicas: 1
-    networks:
-      - internal-net
-
-## BACKEND/ MODEL
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    hostname: ollama
-    ports:
-      - target: 11434
-        published: 11434
-        mode: overlay
-    deploy:
-      resources:
-        reservations:
-          cpus: '1.0'
-###          memory: 4Gib
-### Uncomment if you have dedicated GPU / if you have Nvidia Container Toolkit installed
-          generic_resources:
-            - discrete_resource_spec:
-                kind: "NVIDIA-GPU"
-                value: 1
-      replicas: 1
-    volumes:
-      - ./data/ollama:/root/.ollama
-    networks:
-      - internal-net
-
-#### LANGFUSE:
   langfuse-worker:
     image: langfuse/langfuse-worker:3
-    container_name: langfuse-worker
-    hostname: langfuse-worker
     restart: always
     depends_on: &langfuse-depends-on
       postgres:
@@ -139,13 +43,9 @@ services:
       REDIS_HOST: ${REDIS_HOST:-redis}
       REDIS_PORT: ${REDIS_PORT:-6379}
       REDIS_AUTH: ${REDIS_AUTH:-myredissecret}
-    networks:
-      - internal-net
 
   langfuse-web:
     image: langfuse/langfuse:3
-    hostname: langfuse-web
-    container_name: langfuse-web
     restart: always
     depends_on: *langfuse-depends-on
     ports:
@@ -166,6 +66,7 @@ services:
     networks:
       - internal-net
 
+
   clickhouse:
     image: clickhouse/clickhouse-server
     restart: always
@@ -177,8 +78,8 @@ services:
       CLICKHOUSE_USER: clickhouse
       CLICKHOUSE_PASSWORD: clickhouse
     volumes:
-      - clickhouse-data:/var/lib/clickhouse
-      - clickhouse-logs:/var/log/clickhouse-server
+      - langfuse_clickhouse_data:/var/lib/clickhouse
+      - langfuse_clickhouse_logs:/var/log/clickhouse-server
     ports:
       - "8123:8123"
       - "9000:9000"
@@ -206,7 +107,7 @@ services:
       - "9090:9000"
       - "9091:9001"
     volumes:
-      - ./data/minio:/data
+      - langfuse_minio_data:/data
     healthcheck:
       test: ["CMD", "mc", "ready", "local"]
       interval: 1s
@@ -218,8 +119,6 @@ services:
 
   redis:
     image: redis:7
-    container_name: redis
-    hostname: redis
     restart: always
     command: >
       --requirepass ${REDIS_AUTH:-myredissecret}
@@ -236,8 +135,6 @@ services:
   postgres:
     image: postgres:${POSTGRES_VERSION:-latest}
     restart: always
-    container_name: postgres
-    hostname: postgres
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 3s
@@ -250,40 +147,22 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - ./data/postgres:/var/lib/postgresql/data
+      - langfuse_postgres_data:/var/lib/postgresql/data
     networks:
       - internal-net
-  
-  owu-pipeline:
-    image: ghcr.io/open-webui/pipelines:main
-    container_name: owu-pipeline
-    hostname: owu-pipeline # Hostname in OpenWebui will be https://owu-pipeline:<PORT> | API KEY: 0p3n-w3bu!
-    environment:
-      RESET_PIPELINES_DIR: "true" # Default False, if set to true action will be taken. removing old python code
-###      PIPELINES_REQUIREMENTS_PATH: # installation of requirements.
-      PIPELINES_URLS: "https://github.com/open-webui/pipelines/blob/d4fca4c37c4b8603be7797245e749e9086f35130/examples/filters/langfuse_filter_pipeline.py" # pipelines download and installation.
-    volumes:
-      - ./data/pipelines:/app/pipelines
-    ports:
-      - target: 9099
-        published: 9099
-        protocol: tcp
-        mode: overlay
-    networks:
-      - internal-net
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
 volumes:
-  clickhouse-data:
+  langfuse_postgres_data:
     driver: local
-  clickhouse-logs:
-   driver: local
+  langfuse_clickhouse_data:
+    driver: local
+  langfuse_clickhouse_logs:
+    driver: local
+  langfuse_minio_data:
+    driver: local
+
 
 networks:
   internal-net:
-    name: internal-net
-    external: true
     driver: overlay
-
-
+    external: true

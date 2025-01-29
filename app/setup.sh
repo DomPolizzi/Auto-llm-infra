@@ -2,7 +2,7 @@ echo "=========================================================="
 echo " "
 echo "Creating local directories for Docker volumes"
 echo " "
-mkdir -p data/open-webui data/chromadb data/ollama
+mkdir -p data/open-webui data/chromadb data/ollama data/clickhouse/data data/clickhouse/logs data/minio data/postgres data/pipelines
 echo " "
 echo "Creating Docker Network . . ."
 echo " "
