@@ -1,4 +1,4 @@
-# Title Here:
+# Prototype of Deploying on Demand LLM Ready Infrastructure:
 I know LLM's are cool and all, but you know whats not cool? Setting up the Infrastructure. Well look no further, here are some scripts and ways to deploy Containerized LLM's in a flash.
 
 
@@ -26,6 +26,6 @@ Please Review the Terraform Code before using it, currently using Bash Variables
 
 
 ## Feel free to reach out, if any questions!
-- If this gets attention well, more documentation will be added, of course better automation to come.
+- I have a private API in progress, which will be a different repo when its ready.
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://https://buymeacoffee.com/dompolizzi)
